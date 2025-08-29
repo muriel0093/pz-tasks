@@ -1,0 +1,45 @@
+<main class="flex-shrink-0">
+  <div class="container mt-4">
+    <div class="mb-3">
+      <h1 class="mb-4 text-center">Gerenciar Rats</h1>
+
+      <form id="taskForm" class="row g-3" data-bs-theme="light">
+        <div class="col-md-3">
+          <input type="number" class="form-control" id="codigo" placeholder="Código" required>
+        </div>
+        <div class="col-md-9">
+          <input type="text" class="form-control" id="title" placeholder="Título" required>
+        </div>
+        <div class="col-12">
+          <textarea class="form-control" id="description" rows="4" placeholder="Descrição detalhada..."
+            required></textarea>
+        </div>
+        <div class="col-12 text-center">
+          <button type="submit" class="btn btn-primary">Adicionar Tarefa</button>
+        </div>
+      </form>
+
+      <!-- Botão limpar -->
+      <div class="text-center">
+        <button id="clearBtn" class="btn btn-danger mt-3" hidden>Limpar Tarefas</button>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+  document.getElementById("taskForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const codigo = document.getElementById("codigo").value;
+    const title = document.getElementById("title").value;
+    const description = document.getElementById("description").value;
+
+    await fetch("/PostTasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ codigo, title, description }),
+    });
+
+    e.target.reset();
+    fetchData();
+  });
+</script>

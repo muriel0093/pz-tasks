@@ -1,0 +1,51 @@
+<main class="flex-shrink-0">
+    <div class="container mt-4">
+        <div class="mb-3">
+            <h1 class="mb-4 text-center">Login</h1>
+
+            <form id="loginForm" class="row g-3">
+                <div class="row justify-content-center m-1">
+                    <div class="col-2">
+                        <input type="text" class="form-control" id="user" placeholder="Usuário" required>
+                    </div>
+                </div>
+                <div class="row justify-content-md-center m-1">
+                    <div class="col-md-2">
+                        <input type="text" class="form-control" id="password" placeholder="Senha" autocomplete="off"
+                            required>
+                    </div>
+                </div>
+                <div class="col-12 text-center">
+                    <button type="submit" class="btn btn-primary">Entrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+<script>
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const nome = document.getElementById("user").value;
+        const senha = document.getElementById("password").value;
+
+        try {
+            const response = await fetch("/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nome, senha }),
+            });
+
+            if (!response.ok) {
+                throw new Error();
+            } else {
+                window.location.href = '/';
+            }
+        } catch {
+            swal({
+                title: "Erro ao Logar",
+                text: "Usuário ou senha incorreta.",
+                icon: "error",
+            });
+        }
+    });
+</script>
