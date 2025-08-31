@@ -1,0 +1,14 @@
+<svg fill="white" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="18 18 564 564" style="max-height: 500px" width="564" height="564">
+
+  <title>Abstract user icon</title>
+
+  <defs>
+    <clipPath id="circular-border">
+      <circle r="250" cy="300" cx="300"/>
+    </clipPath>
+  </defs>
+  
+  <circle fill="black" r="280" cy="300" cx="300"/>
+  <circle r="100" cy="230" cx="300"/>
+  <circle clip-path="url(#circular-border)" r="190" cy="550" cx="300"/>
+</svg>

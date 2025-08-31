@@ -1,0 +1,42 @@
+<main class="d-flex justify-content-center flex-column" style="height: 100%;">
+    <div class="container">
+        <h1 class="mb-4 text-center">Login</h1>
+
+        <form id="loginForm" class="d-flex flex-column gap-2">
+            <input type="text" class="form-control mx-auto" style="width: 180px;" id="user" placeholder="Usuário"
+                required>
+            <input type="text" class="form-control mx-auto" style="width: 180px;" id="password" placeholder="Senha"
+                autocomplete="off" required>
+            <button type="submit" class="btn btn-primary mx-auto" style="width: 180px;">
+                Entrar
+            </button>
+        </form>
+    </div>
+</main>
+<script>
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const nome = document.getElementById("user").value;
+        const senha = document.getElementById("password").value;
+
+        try {
+            const response = await fetch("/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nome, senha }),
+            });
+
+            if (!response.ok) {
+                throw new Error();
+            } else {
+                window.location.href = '/';
+            }
+        } catch {
+            Swal.fire({
+                title: "Erro ao Logar",
+                text: "Usuário ou senha incorreta.",
+                icon: "error",
+            });
+        }
+    });
+</script>

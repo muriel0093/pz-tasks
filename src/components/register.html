@@ -1,0 +1,64 @@
+<main class="d-flex justify-content-center flex-column" style="height: 100%;">
+    <div class="container">
+        <h1 class="mb-4 text-center">Register</h1>
+
+        <form id="loginForm" class="d-flex flex-column gap-2">
+            <input type="text" class="form-control mx-auto" style="width: 180px;" id="user" placeholder="Usuário"
+                required>
+            <input type="text" class="form-control mx-auto" style="width: 180px;" id="password" placeholder="Senha"
+                autocomplete="off" required>
+            <button type="submit" class="btn btn-primary mx-auto" style="width: 180px;">
+                Cadastrar
+            </button>
+        </form>
+    </div>
+</main>
+<script>
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const nome = document.getElementById("user").value;
+        const senha = document.getElementById("password").value;
+
+        try {
+            const response = await fetch("/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nome, senha }),
+            });
+
+            if (!response.ok) {
+                if (response.status === 409) {
+                    throw new Error("DUPLICATE")
+                } else {
+                    throw new Error("ERROR");
+                }
+            } else {
+                Swal.fire({
+                    title: "Usuário Cadastrado!",
+                    html: "Seu usuário foi cadastrado, você será redirecionando para tela de login.",
+                    timer: 2000,
+                    timerProgressBar: true,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    },
+                }).then(() => {
+                    window.location.href = '/login';
+                });
+            }
+        } catch (err) {
+            if (err.message === "DUPLICATE") {
+                Swal.fire({
+                    title: "Erro ao Cadastrar",
+                    text: "Já existe um usuário com esse nome cadastrado.",
+                    icon: "error",
+                });
+            } else {
+                Swal.fire({
+                    title: "Erro ao Cadastrar",
+                    text: "Ocorreu um erro inesperaddo ao tentar cadastrar",
+                    icon: "error",
+                });
+            }
+        }
+    });
+</script>

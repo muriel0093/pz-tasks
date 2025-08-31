@@ -1,0 +1,17 @@
+<main class="d-flex justify-content-center align-items-center flex-column" style="height: 100%;">
+	<div class="d-flex flex-column align-items-center gap-2">
+		<img id="perfilIcon" src="../assets/user-icon.svg" width="128" height="128" class="rounded-circle">
+		<h1 id="perfilNome"></h1>
+	</div>
+</main>
+<script defer>
+	const userString = 'USER_STRING';
+
+	function updateUser() {
+		const user = JSON.parse(userString);
+		if (user.foto) document.getElementById("perfilIcon").setAttribute("src", user.foto);
+		document.getElementById("perfilNome").textContent = user.nome;
+	}
+
+	updateUser();
+</script>
