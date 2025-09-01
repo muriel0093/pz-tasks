@@ -1,17 +1,44 @@
-<main class="d-flex justify-content-center align-items-center flex-column" style="height: 100%;">
-	<div class="d-flex flex-column align-items-center gap-2">
-		<img id="perfilIcon" src="../assets/user-icon.svg" width="128" height="128" class="rounded-circle">
-		<h1 id="perfilNome"></h1>
-	</div>
+<main
+  class="d-flex justify-content-center align-items-center flex-column"
+  style="height: 100%"
+>
+  <div class="d-flex flex-column align-items-center gap-2">
+    <img
+      id="perfilIcon"
+      width="128"
+      height="128"
+      class="rounded-circle"
+    />
+    <h1 id="perfilNome"></h1>
+    <span id="totalTasks" class="text-center"></span>
+  </div>
 </main>
 <script defer>
-	const userString = 'USER_STRING';
+  const userString = "USER_STRING";
 
-	function updateUser() {
-		const user = JSON.parse(userString);
-		if (user.foto) document.getElementById("perfilIcon").setAttribute("src", user.foto);
-		document.getElementById("perfilNome").textContent = user.nome;
-	}
+  function updateUser() {
+    const user = JSON.parse(userString);
+    if (user.foto) {
+      document.getElementById("perfilIcon").setAttribute("src", user.foto);
+    } else {
+      document
+        .getElementById("perfilIcon")
+        .setAttribute(
+          "src",
+          `${window.location.origin}/assets/images/user-icon.svg`
+        );
+    }
+    document.getElementById("perfilNome").textContent = user.nome;
+    document.getElementById("totalTasks").innerHTML = `
+      Total de tasks: <b>${user.total_task}</b>
+      <br>
+      Total de tasks em aberto: <b>${
+        Number(user.total_task) - Number(user.total_finalizado)
+      }</b>
+      <br>
+      Total de tasks finalizadas: <b>${user.total_finalizado}</b>
+    `;
+  }
 
-	updateUser();
+  updateUser();
 </script>

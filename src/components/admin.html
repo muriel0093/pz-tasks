@@ -1,46 +1,74 @@
-<main class="d-flex justify-content-center align-items-center flex-column" style="height: 100%;">
-    <ul class="list-group">
-        <li class="list-group-item">
-            Cadastro de novas contas
-            <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-                <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btnradio1">Desativado</label>
+<main
+  class="d-flex justify-content-center align-items-center flex-column"
+  style="height: 100%"
+>
+  <ul class="list-group">
+    <li class="list-group-item">
+      Cadastro de novas contas
+      <div
+        class="btn-group"
+        role="group"
+        aria-label="Basic radio toggle button group"
+      >
+        <input
+          type="radio"
+          class="btn-check"
+          name="btnradio"
+          id="btnradio1"
+          autocomplete="off"
+        />
+        <label class="btn btn-outline-primary" for="btnradio1"
+          >Desativado</label
+        >
 
-                <input type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off">
-                <label class="btn btn-outline-primary" for="btnradio2">Ativado</label>
-            </div>
-        </li>
-        <li class="list-group-item">
-            Checar usuário
-            <form id="checarUser" class="d-flex align-items-center gap-2">
-                <input type="text" class="form-control" style="width: 160px;" id="usuario" placeholder="Usuário" required>
-                <button type="button" class="btn btn-primary">Checar</button>
-            </form>
-        </li>
-    </ul>
-    <style>
-        li {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-        }
+        <input
+          type="radio"
+          class="btn-check"
+          name="btnradio"
+          id="btnradio2"
+          autocomplete="off"
+        />
+        <label class="btn btn-outline-primary" for="btnradio2">Ativado</label>
+      </div>
+    </li>
+    <li class="list-group-item">
+      Checar usuário
+      <form id="checarUser" class="d-flex align-items-center gap-2">
+        <input
+          type="text"
+          class="form-control"
+          style="width: 160px"
+          id="usuario"
+          placeholder="Usuário"
+          required
+        />
+        <button type="button" class="btn btn-primary">Checar</button>
+      </form>
+    </li>
+  </ul>
+  <style>
+    li {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+    }
 
-        ul {
-            width: 50%;
-        }
+    ul {
+      width: 50%;
+    }
 
-        @media (max-width: 768px) {
-            ul {
-                width: 85%;
-            }
-        }
+    @media (max-width: 768px) {
+      ul {
+        width: 85%;
+      }
+    }
 
-        @media (max-width: 480px) {
-            li {
-                text-align: center;
-                flex-direction: column;
-                gap: 8px;
-            }
-        }
-    </style>
+    @media (max-width: 480px) {
+      li {
+        text-align: center;
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+  </style>
 </main>

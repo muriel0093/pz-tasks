@@ -1,64 +1,141 @@
-<main class="d-flex justify-content-center flex-column" style="height: 100%;">
-    <div class="container">
-        <h1 class="mb-4 text-center">Register</h1>
+<main class="d-flex justify-content-center flex-column" style="height: 100dvh">
+  <div class="container">
+    <h1 class="mb-3 text-center">Register</h1>
 
-        <form id="loginForm" class="d-flex flex-column gap-2">
-            <input type="text" class="form-control mx-auto" style="width: 180px;" id="user" placeholder="Usuário"
-                required>
-            <input type="text" class="form-control mx-auto" style="width: 180px;" id="password" placeholder="Senha"
-                autocomplete="off" required>
-            <button type="submit" class="btn btn-primary mx-auto" style="width: 180px;">
-                Cadastrar
-            </button>
-        </form>
-    </div>
+    <form id="registerForm" class="d-flex flex-column align-items-center gap-2">
+      <input
+        type="text"
+        class="form-control"
+        style="width: 200px"
+        id="user"
+        placeholder="Usuário"
+        required
+      />
+      <div class="d-flex justify-content-between" style="width: 200px">
+        <div class="col p-0">
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            placeholder="Senha"
+            autocomplete="off"
+            required
+          />
+        </div>
+        <div class="col-0 p-0 ps-2">
+          <button
+            type="button"
+            id="btnEscondeSenha"
+            class="btn btn-primary text-center"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="lucide lucide-eye-off-icon lucide-eye-off"
+            >
+              <path
+                d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"
+              />
+              <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
+              <path
+                d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"
+              />
+              <path d="m2 2 20 20" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 200px">
+        Cadastrar
+      </button>
+      <a href="/login" class="">Entrar em uma conta</a>
+    </form>
+  </div>
 </main>
 <script>
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const nome = document.getElementById("user").value;
-        const senha = document.getElementById("password").value;
+  document.getElementById("btnEscondeSenha").addEventListener("click", () => {
+    const inputSenha = document.getElementById("password");
+    const btnSenha = document.getElementById("btnEscondeSenha");
 
-        try {
-            const response = await fetch("/auth/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nome, senha }),
-            });
+    if (inputSenha.getAttribute("type") === "password") {
+      inputSenha.setAttribute("type", "text");
+      btnSenha.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-eye-icon lucide-eye">
+          <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      `;
+    } else {
+      inputSenha.setAttribute("type", "password");
+      btnSenha.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+					stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+					class="lucide lucide-eye-off-icon lucide-eye-off">
+					<path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" />
+					<path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
+					<path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" />
+					<path d="m2 2 20 20" />
+				</svg>
+      `;
+    }
+  });
 
-            if (!response.ok) {
-                if (response.status === 409) {
-                    throw new Error("DUPLICATE")
-                } else {
-                    throw new Error("ERROR");
-                }
-            } else {
-                Swal.fire({
-                    title: "Usuário Cadastrado!",
-                    html: "Seu usuário foi cadastrado, você será redirecionando para tela de login.",
-                    timer: 2000,
-                    timerProgressBar: true,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    },
-                }).then(() => {
-                    window.location.href = '/login';
-                });
-            }
-        } catch (err) {
-            if (err.message === "DUPLICATE") {
-                Swal.fire({
-                    title: "Erro ao Cadastrar",
-                    text: "Já existe um usuário com esse nome cadastrado.",
-                    icon: "error",
-                });
-            } else {
-                Swal.fire({
-                    title: "Erro ao Cadastrar",
-                    text: "Ocorreu um erro inesperaddo ao tentar cadastrar",
-                    icon: "error",
-                });
-            }
+  document
+    .getElementById("registerForm")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nome = document.getElementById("user").value;
+      const senha = document.getElementById("password").value;
+
+      try {
+        const response = await fetch("/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nome, senha }),
+        });
+
+        if (!response.ok) {
+          if (response.status === 409) {
+            throw new Error("DUPLICATE");
+          } else {
+            throw new Error("ERROR");
+          }
+        } else {
+          Swal.fire({
+            title: "Usuário Cadastrado!",
+            html: "Seu usuário foi cadastrado, você será redirecionando para tela de login.",
+            timer: 2000,
+            timerProgressBar: true,
+            didOpen: () => {
+              Swal.showLoading();
+            },
+          }).then(() => {
+            window.location.href = "/login";
+          });
         }
+      } catch (err) {
+        if (err.message === "DUPLICATE") {
+          Swal.fire({
+            title: "Erro ao Cadastrar",
+            text: "Já existe um usuário com esse nome cadastrado.",
+            icon: "error",
+          });
+        } else {
+          Swal.fire({
+            title: "Erro ao Cadastrar",
+            text: "Ocorreu um erro inesperaddo ao tentar cadastrar",
+            icon: "error",
+          });
+        }
+      }
     });
 </script>
