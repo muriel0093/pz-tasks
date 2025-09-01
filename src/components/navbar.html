@@ -3,37 +3,16 @@
     <a class="navbar-brand fw-bold" href="/">Task PZ</a>
     <div class="d-flex align-items-center gap-3">
       <div class="dropdown text-end">
-        <a
-          class="d-block link-body-emphasis text-decoration-none dropdown-toggle"
-          style="cursor: pointer"
-          data-bs-toggle="dropdown"
-          aria-expanded="false"
-        >
-          <img
-            id="userIcon"
-            width="36"
-            height="36"
-            class="rounded-circle"
-          />
+        <a class="d-block link-body-emphasis text-decoration-none dropdown-toggle" style="cursor: pointer"
+          data-bs-toggle="dropdown" aria-expanded="false">
+          <img id="userIcon" width="36" height="36" class="rounded-circle" />
         </a>
         <ul class="dropdown-menu text-small dropdown-menu-lg-end mt-3">
           <li>
-            <a
-              class="dropdown-item d-flex align-items-center gap-2"
-              href="/perfil"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="lucide lucide-user-round-icon lucide-user-round"
-              >
+            <a class="dropdown-item d-flex align-items-center gap-2" href="/perfil">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="lucide lucide-user-round-icon lucide-user-round">
                 <circle cx="12" cy="8" r="5" />
                 <path d="M20 21a8 8 0 0 0-16 0" />
               </svg>
@@ -41,25 +20,12 @@
             </a>
           </li>
           <li id="opcaoPainelAdmin" style="display: none">
-            <a
-              class="dropdown-item d-flex align-items-center gap-2"
-              href="/admin"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="lucide lucide-shield-user-icon lucide-shield-user"
-              >
+            <a class="dropdown-item d-flex align-items-center gap-2" href="/admin">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="lucide lucide-shield-user-icon lucide-shield-user">
                 <path
-                  d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"
-                />
+                  d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
                 <path d="M6.376 18.91a6 6 0 0 1 11.249.003" />
                 <circle cx="12" cy="11" r="4" />
               </svg>
@@ -70,22 +36,10 @@
             <hr class="dropdown-divider" />
           </li>
           <li>
-            <a
-              class="dropdown-item d-flex align-items-center gap-2 text-danger"
-              href="/auth/logout"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="lucide lucide-log-out-icon lucide-log-out"
-              >
+            <a class="dropdown-item d-flex align-items-center gap-2 text-danger" href="/auth/logout">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="lucide lucide-log-out-icon lucide-log-out">
                 <path d="m16 17 5-5-5-5" />
                 <path d="M21 12H9" />
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -147,8 +101,7 @@
           "nossa",
         ];
         const audio = new Audio(
-          `${window.location.origin}/assets/audios/${
-            audioList[Math.floor(Math.random() * audioList.length)]
+          `${window.location.origin}/assets/audios/${audioList[Math.floor(Math.random() * audioList.length)]
           }.mp3`
         );
         return audio.play();
@@ -161,9 +114,9 @@
   });
 
   function updateUser() {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = JSON.parse(localStorage.getItem("user")) || {};
 
-    if (user.foto) {
+    if ("foto" in user) {
       document.getElementById("userIcon").setAttribute("src", user.foto);
     } else {
       document
@@ -174,7 +127,7 @@
         );
     }
 
-    if (user.cargo === "ADMIN") {
+    if ("cargo" in user && user.cargo === "ADMIN") {
       document.getElementById("opcaoPainelAdmin").style.display = "list-item";
     } else {
       document.getElementById("opcaoPainelAdmin").style.display = "none";
@@ -183,10 +136,10 @@
 
   updateUser();
 
-  (async () => {
+  async function getUser() {
     await fetch("/perfil/info").then(async (res) => {
-      const data = await res.json();
       try {
+        const data = await res.json();
         const userFetch = {
           nome: data.nome,
           foto: data.foto,
@@ -201,5 +154,7 @@
         window.location.href = "/auth/logout";
       }
     });
-  })();
+  };
+
+  getUser();
 </script>
