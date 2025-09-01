@@ -116,7 +116,7 @@
   function updateUser() {
     const user = JSON.parse(localStorage.getItem("user")) || {};
 
-    if ("foto" in user) {
+    if ("foto" in user && user.foto) {
       document.getElementById("userIcon").setAttribute("src", user.foto);
     } else {
       document

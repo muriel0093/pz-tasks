@@ -2,33 +2,20 @@
   <div class="container mt-4">
     <div class="mb-3">
       <div class="d-flex justify-content-between align-items-center mb-3 gap-2">
-        <h3
-          class="mb-4 text-center"
-          style="line-height: 0; margin: 0 !important"
-        >
+        <h3 class="mb-4 text-center" style="line-height: 0; margin: 0 !important">
           Tasks
         </h3>
         <div class="d-flex align-items-center justify-content-center gap-2">
           <div class="col-5">
-            <input
-              type="text"
-              class="form-control"
-              id="filtro"
-              oninput="debounce(fetchData, 500)"
-              placeholder="Busque pelo título ou código"
-              autocomplete="off"
-            />
+            <input type="text" class="form-control" id="filtro" oninput="debounce(fetchData, 500)"
+              placeholder="Buscar pelo título ou código" autocomplete="off" />
           </div>
           <select id="ordem" class="form-select">
             <option value="PRIORIDADE">Ordenar por prioridade</option>
             <option value="ULTIMOS">Ordenar por últimos criados</option>
             <option value="PRIMEIROS">Ordenar por primeiros criados</option>
           </select>
-          <button
-            type="button"
-            class="btn btn-primary text-nowrap"
-            onclick="abrirModalCadastro()"
-          >
+          <button type="button" class="btn btn-primary text-nowrap" onclick="abrirModalCadastro()">
             Cadastrar Task
           </button>
         </div>
@@ -41,15 +28,8 @@
         <span id="spanPagination"></span>
       </div>
 
-      <div
-        class="modal fade"
-        id="modalCadastro"
-        tabindex="-1"
-        aria-labelledby="modalCadastro"
-        aria-hidden="true"
-        data-bs-backdrop="static"
-        data-bs-keyboard="false"
-      >
+      <div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastro" aria-hidden="true"
+        data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
             <div class="modal-header" style="border: none; padding-bottom: 0">
@@ -62,37 +42,18 @@
                 <div class="row g-2">
                   <div class="col-md-3">
                     <label for="codigo" class="mb-1 ms-1">Código</label>
-                    <input
-                      type="number"
-                      class="form-control"
-                      id="codigo"
-                      placeholder="123456"
-                      autocomplete="off"
-                      min="0"
-                      required
-                    />
+                    <input type="number" class="form-control" id="codigo" placeholder="123456" autocomplete="off"
+                      min="0" required />
                   </div>
                   <div class="col-md-9">
                     <label for="titulo" class="mb-1 ms-1">Título</label>
-                    <input
-                      type="text"
-                      class="form-control"
-                      id="titulo"
-                      placeholder="Ajuste no Tablet"
-                      autocomplete="off"
-                      required
-                    />
+                    <input type="text" class="form-control" id="titulo" placeholder="Ajuste no Tablet"
+                      autocomplete="off" required />
                   </div>
                   <div class="col-12">
                     <label for="descricao" class="mb-1 ms-1">Descrição</label>
-                    <textarea
-                      class="form-control"
-                      id="descricao"
-                      rows="5"
-                      placeholder="Ajustar o tamnho das fontes do Tablet"
-                      style="resize: none"
-                      required
-                    ></textarea>
+                    <textarea class="form-control" id="descricao" rows="5"
+                      placeholder="Ajustar o tamanho das fontes do Tablet" style="resize: none" required></textarea>
                   </div>
                   <div class="col-12">
                     <label for="prioridade" class="mb-1 ms-1">Prioridade</label>
@@ -108,11 +69,7 @@
               </form>
             </div>
             <div class="modal-footer" style="border: none; padding-top: 0">
-              <button
-                type="button"
-                class="btn btn-danger"
-                data-bs-dismiss="modal"
-              >
+              <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
                 Cancelar
               </button>
               <button type="submit" form="formCadastro" class="btn btn-primary">
@@ -168,9 +125,8 @@
 
   function pagination() {
     const span = document.getElementById("spanPagination");
-    span.textContent = `${limitePorPage * page - (limitePorPage - 1)}-${
-      page === totalPages ? totalTasks : limitePorPage * page
-    } de ${totalTasks}`;
+    span.textContent = `${limitePorPage * page - (limitePorPage - 1)}-${page === totalPages ? totalTasks : limitePorPage * page
+      } de ${totalTasks}`;
 
     const nav = document.getElementById("pagination");
     nav.innerHTML = "";
@@ -240,12 +196,16 @@
 
     try {
       const response = await fetch(
-        `/GetTasks/${page}?ordem=${ordem}${
-          valueFiltro ? `&filtro=${valueFiltro}` : ""
+        `/GetTasks/${page}?ordem=${ordem}${valueFiltro ? `&filtro=${valueFiltro}` : ""
         }`
       );
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) {
+        if (response.status === 401) {
+          return window.location.href = "/auth/logout";
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      }
       const data = await response.json();
 
       const accordion = document.createElement("div");
@@ -270,29 +230,24 @@
               aria-expanded="${index === 0}" 
               aria-controls="collapse${index}"
             >
-              <span class="badge bg-info-subtle text-info-emphasis rounded-pill">${
-                element.codigo
-              }</span>
-              ${
-                element.prioridade === "NORMAL"
-                  ? '<span class="badge bg-success-subtle text-success-emphasis rounded-pill">Normal</span>'
-                  : ""
-              }
-              ${
-                element.prioridade === "MODERADO"
-                  ? '<span class="badge bg-warning-subtle text-warning-emphasis rounded-pill">Moderado</span>'
-                  : ""
-              }
-              ${
-                element.prioridade === "PRIORITARIO"
-                  ? '<span class="badge rounded-pill" style="background-color: #361f00; color: #cf9548;">Prioritário</span>'
-                  : ""
-              }
-              ${
-                element.prioridade === "URGENTE"
-                  ? '<span class="badge bg-danger-subtle text-danger-emphasis rounded-pill">Urgente</span>'
-                  : ""
-              }
+              <span class="badge bg-info-subtle text-info-emphasis rounded-pill">${element.codigo
+            }</span>
+              ${element.prioridade === "NORMAL"
+              ? '<span class="badge bg-success-subtle text-success-emphasis rounded-pill">Normal</span>'
+              : ""
+            }
+              ${element.prioridade === "MODERADO"
+              ? '<span class="badge bg-warning-subtle text-warning-emphasis rounded-pill">Moderado</span>'
+              : ""
+            }
+              ${element.prioridade === "PRIORITARIO"
+              ? '<span class="badge rounded-pill" style="background-color: #361f00; color: #cf9548;">Prioritário</span>'
+              : ""
+            }
+              ${element.prioridade === "URGENTE"
+              ? '<span class="badge bg-danger-subtle text-danger-emphasis rounded-pill">Urgente</span>'
+              : ""
+            }
               ${element.titulo} 
               <!-- <span class="badge bg-primary">${element.codigo}</span> -->
             </button>
@@ -352,7 +307,9 @@
 
       if (!response.ok) {
         const err = await response.json();
-        if (err.code && err.code === "INVALID_FIELD") {
+        if (response.status === 401) {
+          return window.location.href = "/auth/logout";
+        } else if (err.code && err.code === "INVALID_FIELD") {
           return Swal.fire({
             icon: "error",
             title: "Erro ao Cadastrar Task!!!",
@@ -361,7 +318,7 @@
         } else {
           return Swal.fire({
             icon: "error",
-            title: "Erro ao cadastrar Task!",
+            title: "Erro ao Cadastrar Task!",
           });
         }
       }

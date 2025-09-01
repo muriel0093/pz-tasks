@@ -12,7 +12,7 @@ const app = express();
 let sql;
 
 const secret = "uj1SQDFwAI9EWt1CxWpmJHd1XgJbytIB";
-const expiresIn = "30d";
+const expiresIn = "14d";
 
 const limitPage = 10;
 
@@ -31,14 +31,67 @@ const db = new sqlite3.Database(
 
 // METHODS
 
-function checkAuth(req, res, next) {
+function updateToken(decoded, res) {
+  const date = new Date();
+  if (decoded.exp - date.getTime() / 1000 < (decoded.exp - decoded.iat) / 2) {
+    const token = jwt.sign({ id: decoded.id }, secret, {
+      expiresIn,
+    });
+    const decodedTime = jwt.verify(token, secret);
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      path: "/",
+      maxAge: (decodedTime.exp - decodedTime.iat) * 1000,
+    });
+  }
+}
+
+function nonAuth(req, res, next) {
   const token = req.cookies.token || undefined;
 
   try {
-    jwt.verify(token, secret);
+    const decoded = jwt.verify(token, secret);
+    updateToken(decoded, res);
     return res.redirect("/");
   } catch (error) {
     next();
+  }
+}
+
+function authAPI(req, res, next) {
+  const token = req.cookies.token || undefined;
+
+  if (!token) return res.status(401).json({ error: "Invalid Token" });
+
+  try {
+    const decoded = jwt.verify(token, secret);
+    updateToken(decoded, res);
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: "Invalid Token" });
+  }
+}
+
+function authAPIAdmin(req, res, next) {
+  const token = req.cookies.token || undefined;
+
+  if (!token) return res.status(401).json({ error: "Invalid Token" });
+
+  sql = "SELECT cargo FROM usuarios WHERE id = ?;";
+
+  try {
+    const decoded = jwt.verify(token, secret);
+    updateToken(decoded, res);
+    db.all(sql, [decoded.id], (err, data) => {
+      if (err) return res.status(401).json({ error: "Invalid Permission" });
+      if (data[0].cargo !== "ADMIN")
+        return res.status(401).json({ error: "Invalid Permission" });
+      next();
+    });
+  } catch (error) {
+    return res.status(401).json({ error: "Invalid Token" });
   }
 }
 
@@ -47,7 +100,8 @@ function authToken(req, res, next) {
 
   if (!token) return res.redirect("/login");
   try {
-    jwt.verify(token, secret);
+    const decoded = jwt.verify(token, secret);
+    updateToken(decoded, res);
     next();
   } catch (error) {
     return res.redirect("/login");
@@ -62,6 +116,7 @@ function authTokenAdmin(req, res, next) {
   if (!token) return res.redirect("/login");
   try {
     const decoded = jwt.verify(token, secret);
+    updateToken(decoded, res);
     db.all(sql, [decoded.id], (err, data) => {
       if (err) return res.redirect("/");
       if (data[0].cargo !== "ADMIN") return res.redirect("/");
@@ -83,7 +138,7 @@ function getUserId(token) {
 
 // API
 
-app.get("/CreateDB", authTokenAdmin, (req, res) => {
+app.get("/CreateDB", authAPIAdmin, (req, res) => {
   sqlCreate = `
         CREATE TABLE tarefas(id INTEGER PRIMARY KEY, codigo INTEGER, titulo VARCHAR, descricao VARCHAR);
         CREATE TABLE usuarios(id INTEGER PRIMARY KEY, nome VARCHAR, senha VARCHAR);
@@ -91,7 +146,7 @@ app.get("/CreateDB", authTokenAdmin, (req, res) => {
   db.run(sqlCreate);
 });
 
-app.delete("/ClearTasks", authTokenAdmin, (req, res) => {
+app.delete("/ClearTasks", authAPIAdmin, (req, res) => {
   const sql = "DELETE FROM tarefas";
   db.run(sql, [], function (err) {
     if (err) {
@@ -106,10 +161,10 @@ app.delete("/ClearTasks", authTokenAdmin, (req, res) => {
   });
 });
 
-app.post("/PostTasks", authToken, (req, res) => {
+app.post("/PostTasks", authAPI, (req, res) => {
   const { codigo, titulo, descricao, prioridade } = req.body;
 
-  const TaskModel = z.object({
+  const TaskSchema = z.object({
     codigo: z
       .int("Precisa ser um número inteiro")
       .gte(0, "Precisa ser maior que 0")
@@ -128,7 +183,12 @@ app.post("/PostTasks", authToken, (req, res) => {
     ),
   });
 
-  const result = TaskModel.safeParse({ codigo, titulo, descricao, prioridade });
+  const result = TaskSchema.safeParse({
+    codigo,
+    titulo,
+    descricao,
+    prioridade,
+  });
 
   if (result.error) {
     return res.status(400).json({
@@ -151,7 +211,7 @@ app.post("/PostTasks", authToken, (req, res) => {
   });
 });
 
-app.get("/GetTasks/:page", authToken, (req, res) => {
+app.get("/GetTasks/:page", authAPI, (req, res) => {
   const ordem = req.query.ordem || undefined;
   const filtro = req.query.filtro || undefined;
   let textOrdem;
@@ -239,6 +299,101 @@ app.get("/GetTasks/:page", authToken, (req, res) => {
       });
     }
   );
+});
+
+app.get("/perfil/info", authAPI, (req, res) => {
+  const token = req.cookies.token || undefined;
+
+  if (!token) return res.status(401).json({ error: "Usuário sem TOKEN" });
+
+  sql = "SELECT nome, foto, cargo FROM usuarios WHERE id = ?;";
+  db.all(sql, [getUserId(token)], (err, data) => {
+    if (err) {
+      return res.status(500).json({ error: "Erro ao buscar o usuário" });
+    }
+
+    if (data.length <= 0) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
+    }
+
+    return res
+      .status(200)
+      .json({ nome: data[0].nome, foto: data[0].foto, cargo: data[0].cargo });
+  });
+});
+
+app.patch("/perfil/update", authAPI, async (req, res) => {
+  const { nome, foto } = req.body;
+  const token = req.cookies.token || undefined;
+
+  if (!token) return res.status(401).json({ error: "Usuário sem TOKEN" });
+
+  const UserSchema = z.object({
+    nome: z
+      .string("Precisa ser um texto")
+      .min(1, "Mínimo de 1 caracter")
+      .max(24, "Máximo de 24 caracteres")
+      .optional(),
+    foto: z
+      .url("Precisa ser uma URL")
+      .refine(async (url) => {
+        try {
+          const response = await fetch(url, { method: "HEAD" });
+          const contentType = response.headers.get("Content-Type");
+          return contentType && contentType.startsWith("image/");
+        } catch {
+          return false;
+        }
+      }, "Não é uma imagem válida")
+      .or(z.literal("SEM_IMAGEM"))
+      .optional(),
+  });
+
+  const result = await UserSchema.safeParseAsync({
+    nome: nome || undefined,
+    foto: foto || undefined,
+  });
+
+  if (result.error) {
+    return res.status(400).json({
+      code: "INVALID_FIELD",
+      errors: result.error.issues.map((e) => ({
+        field: e.path[0],
+        error: e.message,
+      })),
+    });
+  } else {
+    const data = result.data;
+    let campos = [];
+    let valores = [];
+
+    if ("nome" in data && data.nome) {
+      campos.push("nome = ?");
+      valores.push(data.nome);
+    }
+
+    if ("foto" in data && data.foto) {
+      campos.push("foto = ?");
+      if (data.foto === "SEM_IMAGEM") {
+        valores.push(null);
+      } else {
+        valores.push(data.foto);
+      }
+    }
+
+    if (valores.length <= 0)
+      res.status(404).json({ error: "Nenhum campo para modificar" });
+
+    sql = `UPDATE usuarios SET ${campos.join(", ")} WHERE id = ?;`;
+    db.run(sql, [...valores, getUserId(token)], (err) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).json({ error: "ERRO AO ATUALIZAR NO BANCO" });
+      }
+
+      return res.status(200).json({ message: "ATUALIZADO COM SUCESSO" });
+    });
+  }
 });
 
 app.post("/auth/register", (req, res) => {
@@ -345,12 +500,13 @@ app.post("/auth/login", (req, res) => {
         const token = jwt.sign({ id: data[0].id }, secret, {
           expiresIn,
         });
+        const decoded = jwt.verify(token, secret);
         res.cookie("token", token, {
           httpOnly: true,
           secure: false,
           sameSite: "lax",
           path: "/",
-          maxAge: 30 * 24 * 60 * 1000,
+          maxAge: (decoded.exp - decoded.iat) * 1000,
         });
         return res.status(200).json({
           message: "Usuário logado com sucesso",
@@ -364,30 +520,9 @@ app.post("/auth/login", (req, res) => {
   });
 });
 
-app.get("/auth/logout", authToken, (req, res) => {
+app.get("/auth/logout", (req, res) => {
   res.clearCookie("token", { path: "/" });
   return res.redirect("/login");
-});
-
-app.get("/perfil/info", authToken, (req, res) => {
-  const token = req.cookies.token || undefined;
-
-  if (!token) return res.status(401).json({ error: "Usuário sem TOKEN" });
-
-  sql = "SELECT nome, foto, cargo FROM usuarios WHERE id = ?;";
-  db.all(sql, [getUserId(token)], (err, data) => {
-    if (err) {
-      return res.status(500).json({ error: "Erro ao buscar o usuário" });
-    }
-
-    if (data.length <= 0) {
-      return res.status(404).json({ error: "Usuário não encontrado" });
-    }
-
-    return res
-      .status(200)
-      .json({ nome: data[0].nome, foto: data[0].foto, cargo: data[0].cargo });
-  });
 });
 
 // FRONT
@@ -419,7 +554,7 @@ app.get("/admin", authTokenAdmin, (req, res) => {
   res.send(page);
 });
 
-app.get("/register", checkAuth, (req, res) => {
+app.get("/register", nonAuth, (req, res) => {
   page = layout.replace("{{NAVBAR}}", "");
   page = page.replace(
     "{{CONTENT}}",
@@ -428,7 +563,7 @@ app.get("/register", checkAuth, (req, res) => {
   res.send(page);
 });
 
-app.get("/login", checkAuth, (req, res) => {
+app.get("/login", nonAuth, (req, res) => {
   page = layout.replace("{{NAVBAR}}", "");
   page = page.replace(
     "{{CONTENT}}",

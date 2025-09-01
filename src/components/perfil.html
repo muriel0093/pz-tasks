@@ -1,18 +1,68 @@
-<main
-  class="d-flex justify-content-center align-items-center flex-column"
-  style="height: 100%"
->
+<main class="d-flex justify-content-center align-items-center flex-column" style="height: 100%">
   <div class="d-flex flex-column align-items-center gap-2">
-    <img
-      id="perfilIcon"
-      width="128"
-      height="128"
-      class="rounded-circle"
-    />
+    <img id="perfilIcon" width="128" height="128" class="rounded-circle" />
     <h1 id="perfilNome"></h1>
     <span id="totalTasks" class="text-center"></span>
+    <button type="button" class="btn btn-primary mt-1" onclick="abrirModalDadosPerfil()">Editar Perfil</button>
+  </div>
+
+  <div class="modal fade" id="modalDadosPerfil" tabindex="-1" aria-labelledby="modalDadosPerfil" aria-hidden="true"
+    data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header" style="border: none; padding-bottom: 0">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">
+            Editar Perfil
+          </h1>
+        </div>
+        <div class="modal-body">
+          <form id="formDadosPerfil">
+            <div class="row g-2">
+              <div class="col-12">
+                <label for="nome" class="mb-1 ms-1">Nome</label>
+                <input type="text" class="form-control" id="nome" placeholder="Nome" autocomplete="off" required />
+              </div>
+              <div class="col-12">
+                <label for="foto" class="mb-1 ms-1">Foto</label>
+                <input type="text" class="form-control" id="foto" placeholder="https://example.com/foto.png"
+                  autocomplete="off" />
+              </div>
+              <div class="col-12 d-flex flex-row align-items-center mt-4">
+                <span class="text-nowrap">Pré-visualização da foto:</span>
+                <div class="d-flex align-items-center justify-content-evenly gap-2" style="width: 100%;">
+                  <img id="avatar72" name="pre-avatar" width="96" height="96" class="rounded-circle" />
+                  <img id="avatar32" name="pre-avatar" width="48" height="48" class="rounded-circle" />
+                  <img id="avatar16" name="pre-avatar" width="24" height="24" class="rounded-circle" />
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer" style="border: none; padding-top: 0">
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+            Cancelar
+          </button>
+          <button type="submit" form="formDadosPerfil" class="btn btn-primary">
+            Editar
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </main>
+<!-- <script type="module">
+  import { z } from 'https://cdn.jsdelivr.net/npm/zod@4.1.5/+esm';
+
+  const user = { name: "teste", email: "teste@gmail.com", age: 69 };
+
+  const userSchema = z.object({
+    name: z.string(),
+    email: z.string().email().optional(),
+    age: z.number().optional(),
+  });
+
+  console.log(userSchema.safeParse(user));
+</script> -->
 <script defer>
   const userString = "USER_STRING";
 
@@ -32,8 +82,7 @@
     document.getElementById("totalTasks").innerHTML = `
       Total de tasks: <b>${user.total_task}</b>
       <br>
-      Total de tasks em aberto: <b>${
-        Number(user.total_task) - Number(user.total_finalizado)
+      Total de tasks em aberto: <b>${Number(user.total_task) - Number(user.total_finalizado)
       }</b>
       <br>
       Total de tasks finalizadas: <b>${user.total_finalizado}</b>
@@ -41,4 +90,123 @@
   }
 
   updateUser();
+
+  async function isImageUrl(url) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
+  }
+
+  document.getElementById("foto").addEventListener("input", async (input) => {
+    if (await isImageUrl(input.target.value)) {
+      document.getElementsByName("pre-avatar").forEach((avatar) => {
+        avatar.setAttribute("src", input.target.value);
+      });
+    } else {
+      document.getElementsByName("pre-avatar").forEach((e) => {
+        e.setAttribute("src", `${window.location.origin}/assets/images/user-icon.svg`);
+      });
+    }
+  });
+
+  function abrirModalDadosPerfil() {
+    document.getElementById("formDadosPerfil").reset();
+    $("#modalDadosPerfil").modal("show");
+
+    const user = JSON.parse(userString);
+
+    if ("nome" in user && user.nome) document.getElementById("nome").value = user.nome;
+    if ("foto" in user && user.foto) {
+      document.getElementById("foto").value = user.foto;
+      document.getElementsByName("pre-avatar").forEach((e) => {
+        e.setAttribute("src", user.foto);
+      });
+    } else {
+      document.getElementsByName("pre-avatar").forEach((e) => {
+        e.setAttribute("src", `${window.location.origin}/assets/images/user-icon.svg`);
+      });
+    }
+  }
+
+  async function atualizarDados() {
+    const response = await fetch("/perfil/info");
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        return window.location.href = "/auth/logout";
+      } else {
+        return window.location.reload();
+      }
+    }
+
+    try {
+      const newUser = await response.json();
+      userString = JSON.stringify({ nome: newUser.nome, foto: newUser.foto });
+      updateUser();
+    } catch {
+      return window.location.reload();
+    }
+  }
+
+  document
+    .getElementById("formDadosPerfil")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nome = document.getElementById("nome").value;
+      const foto = document.getElementById("foto").value;
+
+      const user = JSON.parse(userString);
+      let dadosUpdate = {};
+
+      if (nome && "nome" in user && nome !== user.nome) dadosUpdate.nome = nome;
+      if (foto && "foto" in user && foto !== user.foto && isImageUrl(foto)) {
+        dadosUpdate.foto = foto;
+      } else if (!foto) {
+        dadosUpdate.foto = "SEM_IMAGEM";
+      }
+
+      const response = await fetch("/perfil/update", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dadosUpdate),
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        if (response.status === 401) {
+          return window.location.href = "/auth/logout";
+        } else if (err.code && err.code === "INVALID_FIELD") {
+          return Swal.fire({
+            icon: "error",
+            title: "Erro ao Editar Perfil!!!",
+            html: err.errors.map((e) => `${e.field}: ${e.error}`).join("<br>"),
+          });
+        } else {
+          return Swal.fire({
+            icon: "error",
+            title: "Erro ao Editar Perfil!",
+          });
+        }
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: "Perfil Atualizado com Sucesso!",
+        html: "Os dados do seu perfil foram atualizados com sucesso",
+        timer: 2000,
+        timerProgressBar: true,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      }).then(() => {
+        window.location.href = "/perfil";
+      });
+
+      $("#modalDadosPerfil").modal("hide");
+      e.target.reset();
+      // atualizarDados();
+    });
 </script>
