@@ -221,6 +221,16 @@
           const item = document.createElement("div");
           item.classList.add("accordion-item");
 
+          // item.innerHTML = `
+          //   <div style="display: flex; flex-direction: row; gap: 8px;">
+          //     <span>${element.titulo}</span>
+          //   </div>
+          //   <div style="display: flex; flex-direction: row; align-items: center; gap: 8px;">
+          //     <img src="${element.usuario.foto}" width="24" height="24" class="rounded-circle" />
+          //     <b style="line-height: 0;"> | ${element.usuario.nome}</b>
+          //   </div>
+          // `;
+
           item.innerHTML = `
           <h2 class="accordion-header" id="heading${index}">
             <button class="accordion-button collapsed d-flex gap-2 bg-primary text-white no-ring" 

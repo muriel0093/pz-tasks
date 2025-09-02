@@ -6,6 +6,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const z = require("zod");
+const { networkInterfaces } = require("os");
 
 const port = 2469;
 const app = express();
@@ -638,5 +639,22 @@ app.use(authToken, (req, res) => {
 // SERVER
 
 app.listen(port, () => {
-  console.log("Server Start | PORT: " + port);
+  let ip;
+  var interfaces = networkInterfaces();
+  for (var devName in interfaces) {
+    var iface = interfaces[devName];
+
+    for (var i = 0; i < iface.length; i++) {
+      var alias = iface[i];
+      if (
+        alias.family === "IPv4" &&
+        alias.address !== "127.0.0.1" &&
+        !alias.internal
+      )
+        ip = alias.address;
+    }
+  }
+  console.log(
+    `Aplicação inciada!\nRodando na porta ${port}.\nURL local: http://localhost:${port}\nURL na rede: http://${ip}:${port}`
+  );
 });
