@@ -2,20 +2,33 @@
   <div class="container mt-4">
     <div class="mb-3">
       <div class="d-flex justify-content-between align-items-center mb-3 gap-2">
-        <h3 class="mb-4 text-center" style="line-height: 0; margin: 0 !important">
+        <h3
+          class="mb-4 text-center"
+          style="line-height: 0; margin: 0 !important"
+        >
           Tasks
         </h3>
         <div class="d-flex align-items-center justify-content-center gap-2">
           <div class="col-5">
-            <input type="text" class="form-control" id="filtro" oninput="debounce(fetchData, 500)"
-              placeholder="Buscar pelo título ou código" autocomplete="off" />
+            <input
+              type="text"
+              class="form-control"
+              id="filtro"
+              oninput="debounce(fetchData, 500)"
+              placeholder="Buscar pelo título ou código"
+              autocomplete="off"
+            />
           </div>
           <select id="ordem" class="form-select">
             <option value="PRIORIDADE">Ordenar por prioridade</option>
             <option value="ULTIMOS">Ordenar por últimos criados</option>
             <option value="PRIMEIROS">Ordenar por primeiros criados</option>
           </select>
-          <button type="button" class="btn btn-primary text-nowrap" onclick="abrirModalCadastro()">
+          <button
+            type="button"
+            class="btn btn-primary text-nowrap"
+            onclick="abrirModalCadastro()"
+          >
             Cadastrar Task
           </button>
         </div>
@@ -28,8 +41,15 @@
         <span id="spanPagination"></span>
       </div>
 
-      <div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastro" aria-hidden="true"
-        data-bs-backdrop="static" data-bs-keyboard="false">
+      <div
+        class="modal fade"
+        id="modalCadastro"
+        tabindex="-1"
+        aria-labelledby="modalCadastro"
+        aria-hidden="true"
+        data-bs-backdrop="static"
+        data-bs-keyboard="false"
+      >
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
             <div class="modal-header" style="border: none; padding-bottom: 0">
@@ -42,18 +62,37 @@
                 <div class="row g-2">
                   <div class="col-md-3">
                     <label for="codigo" class="mb-1 ms-1">Código</label>
-                    <input type="number" class="form-control" id="codigo" placeholder="123456" autocomplete="off"
-                      min="0" required />
+                    <input
+                      type="number"
+                      class="form-control"
+                      id="codigo"
+                      placeholder="123456"
+                      autocomplete="off"
+                      min="0"
+                      required
+                    />
                   </div>
                   <div class="col-md-9">
                     <label for="titulo" class="mb-1 ms-1">Título</label>
-                    <input type="text" class="form-control" id="titulo" placeholder="Ajuste no Tablet"
-                      autocomplete="off" required />
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="titulo"
+                      placeholder="Ajuste no Tablet"
+                      autocomplete="off"
+                      required
+                    />
                   </div>
                   <div class="col-12">
                     <label for="descricao" class="mb-1 ms-1">Descrição</label>
-                    <textarea class="form-control" id="descricao" rows="5"
-                      placeholder="Ajustar o tamanho das fontes do Tablet" style="resize: none" required></textarea>
+                    <textarea
+                      class="form-control"
+                      id="descricao"
+                      rows="5"
+                      placeholder="Ajustar o tamanho das fontes do Tablet"
+                      style="resize: none"
+                      required
+                    ></textarea>
                   </div>
                   <div class="col-12">
                     <label for="prioridade" class="mb-1 ms-1">Prioridade</label>
@@ -69,7 +108,11 @@
               </form>
             </div>
             <div class="modal-footer" style="border: none; padding-top: 0">
-              <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+              <button
+                type="button"
+                class="btn btn-danger"
+                data-bs-dismiss="modal"
+              >
                 Cancelar
               </button>
               <button type="submit" form="formCadastro" class="btn btn-primary">
@@ -125,8 +168,9 @@
 
   function pagination() {
     const span = document.getElementById("spanPagination");
-    span.textContent = `${limitePorPage * page - (limitePorPage - 1)}-${page === totalPages ? totalTasks : limitePorPage * page
-      } de ${totalTasks}`;
+    span.textContent = `${limitePorPage * page - (limitePorPage - 1)}-${
+      page === totalPages ? totalTasks : limitePorPage * page
+    } de ${totalTasks}`;
 
     const nav = document.getElementById("pagination");
     nav.innerHTML = "";
@@ -196,12 +240,13 @@
 
     try {
       const response = await fetch(
-        `/GetTasks/${page}?ordem=${ordem}${valueFiltro ? `&filtro=${valueFiltro}` : ""
+        `/GetTasks/${page}?ordem=${ordem}${
+          valueFiltro ? `&filtro=${valueFiltro}` : ""
         }`
       );
       if (!response.ok) {
         if (response.status === 401) {
-          return window.location.href = "/auth/logout";
+          return (window.location.href = "/auth/logout");
         } else {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -209,7 +254,8 @@
       const data = await response.json();
 
       const accordion = document.createElement("div");
-      accordion.classList.add("accordion");
+      // accordion.classList.add("accordion");
+      accordion.classList.add("lista");
       accordion.id = "tasksAccordion";
       dataPlace.appendChild(accordion);
 
@@ -219,60 +265,86 @@
         limitePorPage = Number(data.limit);
         data.rows.forEach((element, index) => {
           const item = document.createElement("div");
-          item.classList.add("accordion-item");
-
-          // item.innerHTML = `
-          //   <div style="display: flex; flex-direction: row; gap: 8px;">
-          //     <span>${element.titulo}</span>
-          //   </div>
-          //   <div style="display: flex; flex-direction: row; align-items: center; gap: 8px;">
-          //     <img src="${element.usuario.foto}" width="24" height="24" class="rounded-circle" />
-          //     <b style="line-height: 0;"> | ${element.usuario.nome}</b>
-          //   </div>
-          // `;
+          // item.classList.add("accordion-item");
+          item.classList.add("card-task");
 
           item.innerHTML = `
-          <h2 class="accordion-header" id="heading${index}">
-            <button class="accordion-button collapsed d-flex gap-2 bg-primary text-white no-ring" 
-              type="button" 
-              data-bs-toggle="collapse" 
-              data-bs-target="#collapse${index}" 
-              aria-expanded="${index === 0}" 
-              aria-controls="collapse${index}"
-            >
-              <span class="badge bg-info-subtle text-info-emphasis rounded-pill">${element.codigo
-            }</span>
-              ${element.prioridade === "NORMAL"
-              ? '<span class="badge bg-success-subtle text-success-emphasis rounded-pill">Normal</span>'
-              : ""
-            }
-              ${element.prioridade === "MODERADO"
-              ? '<span class="badge bg-warning-subtle text-warning-emphasis rounded-pill">Moderado</span>'
-              : ""
-            }
-              ${element.prioridade === "PRIORITARIO"
-              ? '<span class="badge rounded-pill" style="background-color: #361f00; color: #cf9548;">Prioritário</span>'
-              : ""
-            }
-              ${element.prioridade === "URGENTE"
-              ? '<span class="badge bg-danger-subtle text-danger-emphasis rounded-pill">Urgente</span>'
-              : ""
-            }
-              ${element.titulo} 
-              <!-- <span class="badge bg-primary">${element.codigo}</span> -->
-            </button>
-          </h2>
-          <div 
-            id="collapse${index}" 
-            class="bg-dark accordion-collapse collapse"
-            aria-labelledby="heading${index}" 
-            data-bs-parent="#tasksAccordion"
-          >
-            <div class="accordion-body text-white">
-                ${element.descricao}
+            <div>
+              <span class="badge bg-info-subtle text-info-emphasis rounded-pill">${
+                element.codigo
+              }</span>
+              ${
+                element.prioridade === "NORMAL"
+                  ? '<span class="badge bg-success-subtle text-success-emphasis rounded-pill">Normal</span>'
+                  : ""
+              }
+                   ${
+                     element.prioridade === "MODERADO"
+                       ? '<span class="badge bg-warning-subtle text-warning-emphasis rounded-pill">Moderado</span>'
+                       : ""
+                   }
+                   ${
+                     element.prioridade === "PRIORITARIO"
+                       ? '<span class="badge rounded-pill" style="background-color: #361f00; color: #cf9548;">Prioritário</span>'
+                       : ""
+                   }
+                   ${
+                     element.prioridade === "URGENTE"
+                       ? '<span class="badge bg-danger-subtle text-danger-emphasis rounded-pill">Urgente</span>'
+                       : ""
+                   }
+              <span>${element.titulo}</span>
             </div>
-          </div>
-      `;
+            <div class="perfil">
+              <img src="${
+                element.usuario.foto
+              }" width="26" height="26" class="rounded-circle" />
+              ${element.usuario.nome}
+            </div>
+          `;
+
+          //     item.innerHTML = `
+          //     <h2 class="accordion-header" id="heading${index}">
+          //       <button class="accordion-button collapsed d-flex gap-2 bg-primary text-white no-ring"
+          //         type="button"
+          //         data-bs-toggle="collapse"
+          //         data-bs-target="#collapse${index}"
+          //         aria-expanded="${index === 0}"
+          //         aria-controls="collapse${index}"
+          //       >
+          //         <span class="badge bg-info-subtle text-info-emphasis rounded-pill">${element.codigo
+          //       }</span>
+          //         ${element.prioridade === "NORMAL"
+          //         ? '<span class="badge bg-success-subtle text-success-emphasis rounded-pill">Normal</span>'
+          //         : ""
+          //       }
+          //         ${element.prioridade === "MODERADO"
+          //         ? '<span class="badge bg-warning-subtle text-warning-emphasis rounded-pill">Moderado</span>'
+          //         : ""
+          //       }
+          //         ${element.prioridade === "PRIORITARIO"
+          //         ? '<span class="badge rounded-pill" style="background-color: #361f00; color: #cf9548;">Prioritário</span>'
+          //         : ""
+          //       }
+          //         ${element.prioridade === "URGENTE"
+          //         ? '<span class="badge bg-danger-subtle text-danger-emphasis rounded-pill">Urgente</span>'
+          //         : ""
+          //       }
+          //         ${element.titulo}
+          //         <!-- <span class="badge bg-primary">${element.codigo}</span> -->
+          //       </button>
+          //     </h2>
+          //     <div
+          //       id="collapse${index}"
+          //       class="bg-dark accordion-collapse collapse"
+          //       aria-labelledby="heading${index}"
+          //       data-bs-parent="#tasksAccordion"
+          //     >
+          //       <div class="accordion-body text-white">
+          //           ${element.descricao}
+          //       </div>
+          //     </div>
+          // `;
           accordion.appendChild(item);
         });
 
@@ -318,7 +390,7 @@
       if (!response.ok) {
         const err = await response.json();
         if (response.status === 401) {
-          return window.location.href = "/auth/logout";
+          return (window.location.href = "/auth/logout");
         } else if (err.code && err.code === "INVALID_FIELD") {
           return Swal.fire({
             icon: "error",
@@ -345,6 +417,35 @@
     });
 </script>
 <style>
+  .lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .card-task {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 8px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.03);
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.07);
+    }
+
+    .perfil {
+      img {
+        margin-right: 4px;
+      }
+    }
+  }
+
   .no-ring:focus {
     outline: none !important;
     box-shadow: none !important;
