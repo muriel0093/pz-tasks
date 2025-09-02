@@ -269,7 +269,7 @@
           item.classList.add("card-task");
 
           item.innerHTML = `
-            <div>
+            <div class="informacoes">
               <span class="badge bg-info-subtle text-info-emphasis rounded-pill">${
                 element.codigo
               }</span>
@@ -439,7 +439,16 @@
       background-color: rgba(0, 0, 0, 0.07);
     }
 
+    .informacoes {
+      overflow-x: hidden;
+      text-overflow: ellipsis;
+      text-wrap: nowrap;
+    }
+
     .perfil {
+      display: flex;
+      flex-direction: row;
+      gap: 4px;
       img {
         margin-right: 4px;
       }
