@@ -7,6 +7,7 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const z = require("zod");
 const { networkInterfaces } = require("os");
+const { ca } = require("zod/v4/locales/index.d.cts");
 
 const port = 2469;
 const app = express();
@@ -163,7 +164,7 @@ app.delete("/ClearTasks", authAPIAdmin, (req, res) => {
 });
 
 app.post("/PostTasks", authAPI, (req, res) => {
-  const { codigo, titulo, descricao, prioridade } = req.body;
+  const { codigo, titulo, descricao, prioridade, tipo } = req.body;
 
   const TaskSchema = z.object({
     codigo: z
@@ -182,6 +183,10 @@ app.post("/PostTasks", authAPI, (req, res) => {
       ["NORMAL", "MODERADO", "PRIORITARIO", "URGENTE"],
       "Não é um valor válido"
     ),
+    tipo: z.literal(
+      ["ADAPTATIVO", "CORRETIVO", "PREVENTIVO"],
+      "Não é um valor válido"
+    ),
   });
 
   const result = TaskSchema.safeParse({
@@ -189,6 +194,7 @@ app.post("/PostTasks", authAPI, (req, res) => {
     titulo,
     descricao,
     prioridade,
+    tipo,
   });
 
   if (result.error) {
@@ -202,8 +208,8 @@ app.post("/PostTasks", authAPI, (req, res) => {
   }
 
   sql =
-    "INSERT INTO tarefas(codigo, titulo, descricao, prioridade, finalizado) VALUES (?, ?, ?, ?, 0);";
-  db.run(sql, [codigo, titulo, descricao, prioridade], (err) => {
+    "INSERT INTO tarefas(codigo, titulo, descricao, prioridade, tipo, finalizado) VALUES (?, ?, ?, ?, ?, 0);";
+  db.run(sql, [codigo, titulo, descricao, prioridade, tipo], (err) => {
     if (err) {
       return res.status(500).json({ error: "ERRO AO INSERIR NO BANCO" });
     }
@@ -256,10 +262,12 @@ app.get("/GetTasks/:page", authAPI, (req, res) => {
 
   sql = `
     SELECT 
+    t.id,
     t.codigo, 
     t.titulo, 
     t.descricao, 
     t.prioridade, 
+    t.tipo,
     t.finalizado,
     t.id_usuario,
     u.nome,
@@ -286,10 +294,12 @@ app.get("/GetTasks/:page", authAPI, (req, res) => {
         total: rows[0].total,
         limit: limitPage,
         rows: rows.map((e) => ({
+          id: e.id,
           codigo: e.codigo,
           titulo: e.titulo,
           descricao: e.descricao,
           prioridade: e.prioridade,
+          tipo: e.tipo,
           finalizado: e.finalizado === 1 ? true : false,
           usuario: {
             id: e.id_usuario,
@@ -300,6 +310,59 @@ app.get("/GetTasks/:page", authAPI, (req, res) => {
       });
     }
   );
+});
+
+app.get("/task/id/:id", authAPI, (req, res) => {
+  let id;
+  try {
+    id = Number(req.params.id);
+  } catch {
+    res.status(400).json({ error: "ID precisa ser um número" });
+  }
+
+  sql = `
+    SELECT 
+    t.id,
+    t.codigo, 
+    t.titulo, 
+    t.descricao, 
+    t.prioridade,
+    t.tipo, 
+    t.finalizado,
+    t.id_usuario,
+    u.nome,
+    u.foto
+    FROM tarefas t 
+    LEFT JOIN usuarios u ON u.id = t.id_usuario
+    WHERE t.id = ?;
+  `;
+  db.all(sql, [id], (err, rows) => {
+    if (err)
+      return res
+        .status(404)
+        .json({ error: "Nenhuma task foi encontrada com esse ID!" });
+    if (rows.length <= 0)
+      return res
+        .status(404)
+        .json({ error: "Nenhuma task foi encontrada com esse ID" });
+
+    const task = rows[0];
+
+    res.status(200).json({
+      id: task.id,
+      codigo: task.codigo,
+      titulo: task.titulo,
+      descricao: task.descricao,
+      prioridade: task.prioridade,
+      tipo: task.tipo,
+      finalizado: task.finalizado === 1 ? true : false,
+      usuario: {
+        id: task.id_usuario,
+        nome: task.nome,
+        foto: task.foto,
+      },
+    });
+  });
 });
 
 app.get("/perfil/info", authAPI, (req, res) => {

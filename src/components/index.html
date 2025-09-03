@@ -43,6 +43,63 @@
 
       <div
         class="modal fade"
+        id="modalTask"
+        tabindex="-1"
+        aria-labelledby="modalTask"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div
+              class="modal-header"
+              style="
+                border: none;
+                padding-bottom: 0;
+                flex-direction: column;
+                align-items: baseline;
+              "
+            >
+              <h1
+                id="tituloTask"
+                class="modal-title fs-4"
+                id="exampleModalLabel"
+              ></h1>
+              <div id="tagsTask"></div>
+            </div>
+            <div class="modal-body">
+              <p id="descricaoTask"></p>
+            </div>
+            <div
+              class="modal-footer"
+              style="
+                border: none;
+                padding-top: 0;
+                justify-content: space-between;
+              "
+            >
+              <div>
+                <img
+                  id="fotoUserTask"
+                  width="36"
+                  height="36"
+                  class="rounded-circle me-1"
+                />
+                <span id="nomeUserTask"></span>
+              </div>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="modal fade"
         id="modalCadastro"
         tabindex="-1"
         aria-labelledby="modalCadastro"
@@ -94,7 +151,7 @@
                       required
                     ></textarea>
                   </div>
-                  <div class="col-12">
+                  <div class="col-6">
                     <label for="prioridade" class="mb-1 ms-1">Prioridade</label>
                     <select id="prioridade" class="form-select" required>
                       <option value="" selected>Selecione a Prioridade</option>
@@ -102,6 +159,15 @@
                       <option value="MODERADO">Moderado</option>
                       <option value="PRIORITARIO">Prioritário</option>
                       <option value="URGENTE">Urgente</option>
+                    </select>
+                  </div>
+                  <div class="col-6">
+                    <label for="tipo" class="mb-1 ms-1">Tipo</label>
+                    <select id="tipo" class="form-select" required>
+                      <option value="" selected>Selecione o Tipo</option>
+                      <option value="ADAPTATIVO">Adaptativo</option>
+                      <option value="CORRETIVO">Corretivo</option>
+                      <option value="PREVENTIVO">Preventivo</option>
                     </select>
                   </div>
                 </div>
@@ -267,32 +333,48 @@
           const item = document.createElement("div");
           // item.classList.add("accordion-item");
           item.classList.add("card-task");
+          item.setAttribute("onclick", `abrirModalTask(${element.id})`);
 
           item.innerHTML = `
             <div class="informacoes">
-              <span class="badge bg-info-subtle text-info-emphasis rounded-pill">${
-                element.codigo
-              }</span>
+              <span class="badge bg-info-subtle text-info-emphasis rounded-pill">
+                ${element.codigo}
+              </span>
               ${
                 element.prioridade === "NORMAL"
                   ? '<span class="badge bg-success-subtle text-success-emphasis rounded-pill">Normal</span>'
                   : ""
               }
-                   ${
-                     element.prioridade === "MODERADO"
-                       ? '<span class="badge bg-warning-subtle text-warning-emphasis rounded-pill">Moderado</span>'
-                       : ""
-                   }
-                   ${
-                     element.prioridade === "PRIORITARIO"
-                       ? '<span class="badge rounded-pill" style="background-color: #361f00; color: #cf9548;">Prioritário</span>'
-                       : ""
-                   }
-                   ${
-                     element.prioridade === "URGENTE"
-                       ? '<span class="badge bg-danger-subtle text-danger-emphasis rounded-pill">Urgente</span>'
-                       : ""
-                   }
+              ${
+                element.prioridade === "MODERADO"
+                  ? '<span class="badge bg-warning-subtle text-warning-emphasis rounded-pill">Moderado</span>'
+                  : ""
+              }
+              ${
+                element.prioridade === "PRIORITARIO"
+                  ? '<span class="badge rounded-pill" style="background-color: #361f00; color: #cf9548;">Prioritário</span>'
+                  : ""
+              }
+              ${
+                element.prioridade === "URGENTE"
+                  ? '<span class="badge bg-danger-subtle text-danger-emphasis rounded-pill">Urgente</span>'
+                  : ""
+              }
+              ${
+                element.tipo === "ADAPTATIVO"
+                  ? '<span class="badge rounded-pill" style="background-color: #100036; color: #7c61f5;">Adaptativo</span>'
+                  : ""
+              }
+              ${
+                element.tipo === "CORRETIVO"
+                  ? '<span class="badge rounded-pill" style="background-color: #001736; color: #61b2f5;">Corretivo</span>'
+                  : ""
+              }
+              ${
+                element.tipo === "PREVENTIVO"
+                  ? '<span class="badge rounded-pill" style="background-color: #1f3600; color: #79d444;">Preventivo</span>'
+                  : ""
+              }
               <span>${element.titulo}</span>
             </div>
             <div class="perfil">
@@ -380,11 +462,12 @@
       const titulo = document.getElementById("titulo").value;
       const descricao = document.getElementById("descricao").value;
       const prioridade = document.getElementById("prioridade").value;
+      const tipo = document.getElementById("tipo").value;
 
       const response = await fetch("/PostTasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codigo, titulo, descricao, prioridade }),
+        body: JSON.stringify({ codigo, titulo, descricao, prioridade, tipo }),
       });
 
       if (!response.ok) {
@@ -415,12 +498,80 @@
       e.target.reset();
       fetchData();
     });
+
+  async function abrirModalTask(id) {
+    const response = await fetch(`task/id/${id}`);
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        return (window.location.href = "/auth/logout");
+      } else {
+        return Swal.fire({
+          icon: "error",
+          title: "Erro ao Buscar Dados da Task",
+        });
+      }
+    }
+
+    const data = await response.json();
+
+    document.getElementById("tituloTask").textContent = data.titulo;
+    document.getElementById("descricaoTask").textContent = data.descricao;
+    document.getElementById("nomeUserTask").textContent = data.usuario.nome;
+    document
+      .getElementById("fotoUserTask")
+      .setAttribute("src", data.usuario.foto);
+    document.getElementById("tagsTask").innerHTML = `
+      <span class="badge bg-info-subtle text-info-emphasis rounded-pill">
+        ${data.codigo}
+      </span>
+      ${
+        data.prioridade === "NORMAL"
+          ? '<span class="badge bg-success-subtle text-success-emphasis rounded-pill">Normal</span>'
+          : ""
+      }
+      ${
+        data.prioridade === "MODERADO"
+          ? '<span class="badge bg-warning-subtle text-warning-emphasis rounded-pill">Moderado</span>'
+          : ""
+      }
+      ${
+        data.prioridade === "PRIORITARIO"
+          ? '<span class="badge rounded-pill" style="background-color: #361f00; color: #cf9548;">Prioritário</span>'
+          : ""
+      }
+      ${
+        data.prioridade === "URGENTE"
+          ? '<span class="badge bg-danger-subtle text-danger-emphasis rounded-pill">Urgente</span>'
+          : ""
+      }
+      ${
+        data.tipo === "ADAPTATIVO"
+          ? '<span class="badge rounded-pill" style="background-color: #100036; color: #7c61f5;">Adaptativo</span>'
+          : ""
+      }
+      ${
+        data.tipo === "CORRETIVO"
+          ? '<span class="badge rounded-pill" style="background-color: #001736; color: #61b2f5;">Corretivo</span>'
+          : ""
+      }
+      ${
+        data.tipo === "PREVENTIVO"
+          ? '<span class="badge rounded-pill" style="background-color: #1f3600; color: #79d444;">Preventivo</span>'
+          : ""
+      }
+    `;
+
+    $("#modalTask").modal("show");
+  }
 </script>
 <style>
   .lista {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    /* max-height: 60dvh;
+    overflow-y: auto; */
   }
 
   .card-task {
