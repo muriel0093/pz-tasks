@@ -166,6 +166,10 @@ app.delete("/ClearTasks", authAPIAdmin, (req, res) => {
 app.post("/PostTasks", authAPI, (req, res) => {
   const { codigo, titulo, descricao, prioridade, tipo } = req.body;
 
+  const token = req.cookies.token || undefined;
+
+  if (!token) return res.status(401).json({ error: "Usuário sem TOKEN" });
+
   const TaskSchema = z.object({
     codigo: z
       .int("Precisa ser um número inteiro")
@@ -208,14 +212,18 @@ app.post("/PostTasks", authAPI, (req, res) => {
   }
 
   sql =
-    "INSERT INTO tarefas(codigo, titulo, descricao, prioridade, tipo, finalizado) VALUES (?, ?, ?, ?, ?, 0);";
-  db.run(sql, [codigo, titulo, descricao, prioridade, tipo], (err) => {
-    if (err) {
-      return res.status(500).json({ error: "ERRO AO INSERIR NO BANCO" });
-    }
+    "INSERT INTO tarefas(id_usuario, codigo, titulo, descricao, prioridade, tipo, finalizado) VALUES (?, ?, ?, ?, ?, ?, 0);";
+  db.run(
+    sql,
+    [getUserId(token), codigo, titulo, descricao, prioridade, tipo],
+    (err) => {
+      if (err) {
+        return res.status(500).json({ error: "ERRO AO INSERIR NO BANCO" });
+      }
 
-    return res.status(200).json({ message: "INSERIDO COM SUCESSO" });
-  });
+      return res.status(200).json({ message: "INSERIDO COM SUCESSO" });
+    }
+  );
 });
 
 app.get("/GetTasks/:page", authAPI, (req, res) => {
@@ -364,6 +372,8 @@ app.get("/task/id/:id", authAPI, (req, res) => {
     });
   });
 });
+
+// app.put("/task/finalizado/id/:id", authAPI,)
 
 app.get("/perfil/info", authAPI, (req, res) => {
   const token = req.cookies.token || undefined;
@@ -649,6 +659,7 @@ app.get("/perfil", authToken, (req, res) => {
 });
 
 app.get("/perfil/u/:nome", authToken, (req, res) => {
+  const token = req.cookies.token || undefined;
   const nome = req.params.nome || undefined;
   if (!nome) return res.redirect("/");
 
@@ -656,6 +667,7 @@ app.get("/perfil/u/:nome", authToken, (req, res) => {
 
   sql = `
     SELECT 
+    u.id,
     u.nome, 
     u.foto, 
     COUNT(t.id) as total_task, 
@@ -678,10 +690,19 @@ app.get("/perfil/u/:nome", authToken, (req, res) => {
       "{{NAVBAR}}",
       fs.readFileSync("src/components/navbar.html")
     );
-    page = page.replace(
-      "{{CONTENT}}",
-      fs.readFileSync("src/components/perfil.html")
-    );
+
+    if (data[0].id === getUserId(token)) {
+      page = page.replace(
+        "{{CONTENT}}",
+        fs.readFileSync("src/components/perfil/perfil.html")
+      );
+    } else {
+      page = page.replace(
+        "{{CONTENT}}",
+        fs.readFileSync("src/components/perfil/perfil-outro.html")
+      );
+    }
+
     page = page.replace('"USER_STRING"', `'${JSON.stringify(user)}'`);
     res.send(page);
   });

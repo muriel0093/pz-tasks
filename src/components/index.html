@@ -61,13 +61,30 @@
             >
               <h1
                 id="tituloTask"
-                class="modal-title fs-4"
+                class="modal-title fs-4 mb-2"
                 id="exampleModalLabel"
               ></h1>
               <div id="tagsTask"></div>
             </div>
             <div class="modal-body">
-              <p id="descricaoTask"></p>
+              <div class="row">
+                <div class="col-12">
+                  <p id="descricaoTask"></p>
+                </div>
+                <div class="col-12">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      value=""
+                      id="finalizado"
+                    />
+                    <label class="form-check-label" for="finalizado">
+                      Tarefa finalizada?
+                    </label>
+                  </div>
+                </div>
+              </div>
             </div>
             <div
               class="modal-footer"
@@ -378,10 +395,10 @@
               <span>${element.titulo}</span>
             </div>
             <div class="perfil">
+              ${element.usuario.nome}
               <img src="${
                 element.usuario.foto
               }" width="26" height="26" class="rounded-circle" />
-              ${element.usuario.nome}
             </div>
           `;
 
@@ -499,7 +516,7 @@
       fetchData();
     });
 
-  async function abrirModalTask(id) {
+  async function atualizarModalTask(id) {
     const response = await fetch(`task/id/${id}`);
 
     if (!response.ok) {
@@ -561,8 +578,32 @@
           : ""
       }
     `;
+  }
 
+  async function abrirModalTask(id) {
+    atualizarModalTask(id);
     $("#modalTask").modal("show");
+  }
+
+  async function atualizarFinalizado(id) {
+    const finalizado = document.getElementById("finalizaddo").checked;
+
+    const response = await fetch(`/task/finalizado/id/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ finalizado }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        return (window.location.href = "/auth/logout");
+      } else {
+        return Swal.fire({
+          icon: "error",
+          title: "Erro ao Atualizar a Task",
+        });
+      }
+    }
   }
 </script>
 <style>
