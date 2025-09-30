@@ -535,6 +535,8 @@
     document.getElementById("tituloTask").textContent = data.titulo;
     document.getElementById("descricaoTask").textContent = data.descricao;
     document.getElementById("nomeUserTask").textContent = data.usuario.nome;
+    document.getElementById("finalizado").checked = data.finalizado;
+    document.getElementById("finalizado").setAttribute("onchange", `atualizarFinalizado(${data.id})`);
     document
       .getElementById("fotoUserTask")
       .setAttribute("src", data.usuario.foto);
@@ -586,7 +588,7 @@
   }
 
   async function atualizarFinalizado(id) {
-    const finalizado = document.getElementById("finalizaddo").checked;
+    const finalizado = document.getElementById("finalizado").checked;
 
     const response = await fetch(`/task/finalizado/id/${id}`, {
       method: "POST",

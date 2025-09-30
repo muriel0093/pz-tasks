@@ -268,6 +268,31 @@ app.get("/GetTasks/:page", authAPI, (req, res) => {
     res.status(400).json({ error: "Página inválida" });
   }
 
+  // TODO Fazer um lugar para visualizar os finalizados, e voltar estes aqui para tarefas apenas não finalizados.
+
+  // sql = `
+  //   SELECT
+  //   t.id,
+  //   t.codigo,
+  //   t.titulo,
+  //   t.descricao,
+  //   t.prioridade,
+  //   t.tipo,
+  //   t.finalizado,
+  //   t.id_usuario,
+  //   u.nome,
+  //   u.foto,
+  //   (SELECT COUNT(*) FROM tarefas WHERE finalizado = 0${
+  //     filtro ? ` AND (codigo LIKE ? OR titulo LIKE ?)` : ""
+  //   }) as total
+  //   FROM tarefas t
+  //   LEFT JOIN usuarios u ON u.id = t.id_usuario
+  //   WHERE t.finalizado = 0
+  //   ${filtro ? `AND (t.codigo LIKE ? OR t.titulo LIKE ?)` : ""}
+  //   ${textOrdem}
+  //   LIMIT ${limitPage} OFFSET ${(page - 1) * limitPage};
+  // `;
+
   sql = `
     SELECT 
     t.id,
@@ -280,16 +305,16 @@ app.get("/GetTasks/:page", authAPI, (req, res) => {
     t.id_usuario,
     u.nome,
     u.foto,
-    (SELECT COUNT(*) FROM tarefas WHERE finalizado = 0${
-      filtro ? ` AND (codigo LIKE ? OR titulo LIKE ?)` : ""
+    (SELECT COUNT(*) FROM tarefas${
+      filtro ? ` WHERE (codigo LIKE ? OR titulo LIKE ?)` : ""
     }) as total
     FROM tarefas t 
     LEFT JOIN usuarios u ON u.id = t.id_usuario
-    WHERE t.finalizado = 0
-    ${filtro ? `AND (t.codigo LIKE ? OR t.titulo LIKE ?)` : ""}
+    ${filtro ? `WHERE (t.codigo LIKE ? OR t.titulo LIKE ?)` : ""}
     ${textOrdem}
     LIMIT ${limitPage} OFFSET ${(page - 1) * limitPage};
   `;
+
   db.all(
     sql,
     filtro ? [`%${filtro}%`, `%${filtro}%`, `%${filtro}%`, `%${filtro}%`] : [],
@@ -373,7 +398,45 @@ app.get("/task/id/:id", authAPI, (req, res) => {
   });
 });
 
-// app.put("/task/finalizado/id/:id", authAPI,)
+app.post("/task/finalizado/id/:id", authAPI, (req, res) => {
+  const id = req.params.id;
+  const { finalizado } = req.body;
+
+  const FinalizadoSchema = z.object({
+    id: z.coerce.number("Precisa ser um número"),
+    finalizado: z.boolean("Precisa ser um Booleano."),
+  });
+
+  const result = FinalizadoSchema.safeParse({
+    id,
+    finalizado,
+  });
+
+  if (result.error) {
+    return res.status(400).json({
+      code: "INVALID_FIELD",
+      errors: result.error.issues.map((e) => ({
+        field: e.path[0],
+        error: e.message,
+      })),
+    });
+  } else {
+    const data = result.data;
+
+    sql = "UPDATE tarefas SET finalizado = ? WHERE id = ?;";
+
+    db.run(sql, [data.finalizado, data.id], (err) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).json({ error: "Erro ao atualizar finalizado" });
+      }
+
+      return res
+        .status(200)
+        .json({ message: "Finalizado atualizado com sucesso" });
+    });
+  }
+});
 
 app.get("/perfil/info", authAPI, (req, res) => {
   const token = req.cookies.token || undefined;
